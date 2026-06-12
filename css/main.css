@@ -219,7 +219,7 @@ header nav ul li.active::after {
 }
 
 .features {
-    background: url('/img/BG2.png') no-repeat center center fixed;
+    background: url('../img/BG.png') no-repeat center center fixed;
     background-size: cover;
     padding: 80px 80px;
 }
