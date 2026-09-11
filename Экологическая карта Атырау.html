@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Экологическая обстановка - Атырау (31.08 - 08.09.2026)</title>
+    
+    <!-- Подключаем стили и скрипты библиотеки Leaflet для интерактивной карты -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        body { margin: 0; padding: 0; }
+        /* Карта будет занимать весь экран */
+        #map { height: 100vh; width: 100%; } 
+        
+        /* Стили для компаса */
+        .compass-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #333;
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+        }
+        .compass-point { position: absolute; }
+        .north { top: 2px; left: 50%; transform: translateX(-50%); color: red; }
+        .south { bottom: 2px; left: 50%; transform: translateX(-50%); }
+        .west  { top: 50%; left: 4px; transform: translateY(-50%); }
+        .east  { top: 50%; right: 4px; transform: translateY(-50%); }
+
+        /* Легенда карты */
+        .legend {
+            position: absolute;
+            bottom: 30px;
+            left: 20px;
+            z-index: 1000;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+        }
+        .legend-item { display: flex; align-items: center; margin-bottom: 8px; }
+        .color-box { width: 20px; height: 20px; margin-right: 10px; border-radius: 50%; }
+    </style>
+</head>
+<body>
+
+    <!-- Элемент для карты -->
+    <div id="map"></div>
+
+    <!-- Компас -->
+    <div class="compass-container">
+        <div class="compass-point north">С</div>
+        <div class="compass-point south">Ю</div>
+        <div class="compass-point west">З</div>
+        <div class="compass-point east">В</div>
+    </div>
+
+    <!-- Легенда -->
+    <div class="legend">
+        <b>Обозначения:</b><br><br>
+        <div class="legend-item"><div class="color-box" style="background: black;"></div> АНПЗ (Завод)</div>
+        <div class="legend-item"><div class="color-box" style="background: rgba(255, 0, 0, 0.4);"></div> Зоны жалоб жителей</div>
+        <div class="legend-item"><div class="color-box" style="background: orange; border: 2px solid red;"></div> Экопосты (превышение ПДК)</div>
+        <div class="legend-item"><div style="width: 20px; height: 4px; background: blue; margin-right: 10px;"></div> Направление ветра (Южный)</div>
+    </div>
+
+    <script>
+        // Инициализируем карту по координатам Атырау
+        var map = L.map('map').setView([47.105, 51.910], 13);
+
+        // Добавляем базовый слой карты (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 18
+        }).addTo(map);
+
+        // 1. ОТМЕЧАЕМ ЗАВОД (АНПЗ)
+        var factoryIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-black.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+        });
+        L.marker([47.075, 51.938], {icon: factoryIcon}).addTo(map)
+         .bindPopup("<b>АНПЗ (Завод)</b><br>Потенциальный источник выбросов.");
+
+        // 2. ОТМЕЧАЕМ НАПРАВЛЕНИЕ ВЕТРА (С юга на север)
+        var windPath = [
+            [47.050, 51.930], // Юг
+            [47.140, 51.900]  // Север
+        ];
+        L.polyline(windPath, {
+            color: 'blue',
+            weight: 4,
+            opacity: 0.7,
+            dashArray: '10, 10'
+        }).addTo(map).bindPopup("<b>Южный ветер (15-18 м/с)</b><br>Преобладал с 31.08 по 08.09, перенося выбросы на жилые массивы севера и северо-запада.");
+
+        // 3. ОТМЕЧАЕМ ЭКОПОСТЫ С ПРЕВЫШЕНИЯМИ (Оранжевые круги)
+        var ecoPosts = [
+            { name: "Казгидромет №15 (Т.Бигельдинова)", coords: [47.110, 51.890], desc: "Диоксид азота до 2.5 ПДК" },
+            { name: "Казгидромет №17 (Самал)", coords: [47.135, 51.895], desc: "Диоксид азота до 2.5 ПДК<br>Сероводород до 3.3 ПДК" },
+            { name: "NCOC №109 (Восток)", coords: [47.095, 51.905], desc: "Сероводород до 7.9 ПДК" },
+            { name: "NCOC №113 (Авангард)", coords: [47.100, 51.870], desc: "Сероводород до 8.0 ПДК (ВЗ до 15.0 ПДК)" },
+            { name: "NCOC №111 (Жилгородок)", coords: [47.085, 51.890], desc: "Сероводород до 15.0 ПДК (ВЗ)" },
+            { name: "NCOC №103 (Шагала)", coords: [47.105, 51.920], desc: "Сероводород до 4.5 ПДК<br>Диоксид азота до 5.6 ПДК" },
+            { name: "NCOC №112 (Акимат)", coords: [47.105, 51.900], desc: "Сероводород до 5.7 ПДК" }
+        ];
+
+        ecoPosts.forEach(function(post) {
+            L.circleMarker(post.coords, {
+                color: 'red',
+                fillColor: 'orange',
+                fillOpacity: 0.8,
+                radius: 8
+            }).addTo(map).bindPopup("<b>" + post.name + "</b><br>" + post.desc);
+        });
+
+        // 4. ЗОНЫ ЖАЛОБ ЖИТЕЛЕЙ (Полупрозрачные красные пятна)
+        var complaintZones = [
+            { name: "Мкр. Самал", coords: [47.135, 51.895] },
+            { name: "Мкр. Нурсая", coords: [47.115, 51.885] },
+            { name: "Жилгородок", coords: [47.085, 51.890] },
+            { name: "Авангард", coords: [47.095, 51.865] },
+            { name: "Мкр. Восток", coords: [47.095, 51.905] },
+            { name: "Химпоселок", coords: [47.090, 51.930] }
+        ];
+
+        complaintZones.forEach(function(zone) {
+            L.circle(zone.coords, {
+                color: 'transparent',
+                fillColor: 'red',
+                fillOpacity: 0.3,
+                radius: 1200 // Радиус охвата жалоб в метрах
+            }).addTo(map).bindPopup("<b>Зона жалоб: " + zone.name + "</b><br>Характер: Резкий сероводородный запах, удушье.");
+        });
+
+    </script>
+</body>
+</html>
